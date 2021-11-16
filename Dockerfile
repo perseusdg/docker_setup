@@ -107,8 +107,12 @@ RUN cd ~/build && \
     -D INSTALL_C_EXAMPLES=OFF \
     -D OPENCV_EXTRA_MODULES_PATH='~/build/opencv_contrib-4.5.4/modules' \
     -D BUILD_EXAMPLES=OFF \
+    -D BUILD_TESTS=OFF \
+    -D BUILD_PERF_TESTS=OFF \
+    -D BUILD_DOCS=OFF \
     -D WITH_CUDA=ON \
     -D WITH_OPENGL=ON \
+    -D WITH_NVCUVID=ON \
     -D CUDA_ARCH_BIN=6.1 \
     -D CUDA_ARCH_PTX=6.1 \
     -D ENABLE_FAST_MATH=ON \
@@ -121,7 +125,13 @@ RUN cd ~/build && \
     -D WITH_GSTREAMER=ON \
     -D WITH_GSTREAMER_0_10=OFF \
     -D WITH_TBB=ON \
-    ../ && make -j12 && make instal
+    ../ && make -j12 && make install
+
+RUN apt-get update && apt-get install libglew-dev && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+RUN cd ~/build && wget https://github.com/stevenlovegrove/Pangolin/archive/refs/tags/v0.6.tar.gz && tar -xvf v0.6.tar.gz && \
+cd Pangolin-0.6 && mkdir build && cd build && cmake \
+-D CMAKE_BUILD_TYPE=Release ../ && make -j12 && make install
 
 RUN cd ~ && rm -rf build
 COPY assets/entrypoint_setup.sh /
