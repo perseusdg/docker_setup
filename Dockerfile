@@ -20,16 +20,13 @@ htop \
 clang-11 \
 lldb-11 \
 dbus-x11 \
-libqt5opengl5-dev\
+libqt5opengl5-dev \
 libgtk-3-dev \
 libvtk7-dev \
 libcudnn8-dev=8.2.1.32-1+cuda11.3 \
 libcudnn8=8.2.1.32-1+cuda11.3 \
 libnvinfer-dev=8.0.3-1+cuda11.3 \
 libnvinfer8=8.0.3-1+cuda11.3 \
-libnvinfer-bin=8.0.3-1+cuda11.3 \
-python3-libnvinfer=8.0.3-1+cuda11.3 \
-python3-libnvinfer-dev=8.0.3-1+cuda11.3 \
 libv4l-dev \
 tar \
 gfortran-9 \
