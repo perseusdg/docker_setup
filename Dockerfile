@@ -134,6 +134,9 @@ cd Pangolin-0.6 && mkdir build && cd build && cmake \
 -D CMAKE_BUILD_TYPE=Release ../ && make -j12 && make install
 
 RUN cd ~ && rm -rf build
+
+RUN apt-get update && apt-get install -y libyaml-cpp-dev && apt-get clean && rm -rf /var/lib/apt/lists/*
+
 COPY assets/entrypoint_setup.sh /
 ENTRYPOINT ["/entrypoint_setup.sh"]
 CMD ["terminator"]
