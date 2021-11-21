@@ -35,6 +35,8 @@ libgtk-3-dev \
 libvtk7-dev \
 libv4l-dev \
 tar \
+libgoogle-glog-dev \
+libgflags-dev \
 gfortran-9 \
 libtbb-dev \
 libgstreamer1.0-dev \
@@ -43,6 +45,7 @@ libdc1394-22-dev \
 libavresample-dev \
 libatlas-cpp-0.6-dev \
 python3-dev \
+gdb \
 python3-pip \
 unzip libtbb-dev && \
 apt-get clean && rm -rf /var/lib/apt/lists/*
@@ -59,10 +62,8 @@ RUN pip3 install --ignore-installed --upgrade numpy protobuf
 
 
 RUN cd ~ && mkdir build
-ENV CC clang-11
-ENV CXX clang++-11
-RUN cd ~/build && wget https://github.com/Kitware/CMake/releases/download/v3.21.4/cmake-3.21.4.tar.gz && export CC=clang-11 && \
-export CXX=clang++-11 && tar -xvf cmake-3.21.4.tar.gz && cd cmake-3.21.4 && ./configure --prefix=/usr/local --qt-gui --parallel=12 && \
+RUN cd ~/build && wget https://github.com/Kitware/CMake/releases/download/v3.21.4/cmake-3.21.4.tar.gz  && \
+tar -xvf cmake-3.21.4.tar.gz && cd cmake-3.21.4 && ./configure --prefix=/usr/local --qt-gui --parallel=12 && \
 make -j8 && make install 
 
 RUN apt-get update && apt-get install -y automake autoconf pkg-config libevent-dev libncurses5-dev bison && \
@@ -129,9 +130,40 @@ RUN cd ~/build && \
 
 RUN apt-get update && apt-get install libglew-dev && apt-get clean && rm -rf /var/lib/apt/lists/*
 
+RUN apt-get update && curl -sSL http://get.gazebosim.org | sh && \
+sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-stable `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-stable.list' && \
+apt-get update && apt-get install -y libgazebo11-dev gazebo11 && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+
 RUN cd ~/build && wget https://github.com/stevenlovegrove/Pangolin/archive/refs/tags/v0.6.tar.gz && tar -xvf v0.6.tar.gz && \
 cd Pangolin-0.6 && mkdir build && cd build && cmake \
 -D CMAKE_BUILD_TYPE=Release ../ && make -j12 && make install
+
+
+RUN cd ~/build && pip3 install rosdep rosinstall_generator vcstool && \
+rosdep init && \
+rosdep update && \
+mkdir ros_caktin_ws && cd ros_caktin_ws && \
+rosinstall_generator desktop_full --rosdistro noetic --deps --tar > noetic-desktop.rosinstall && \
+mkdir ./src && vcs import --input noetic-desktop.rosinstall ./src && \
+apt-get update && apt-get install -y \
+liborocos-kdl-dev \
+libgpgme-dev \
+libfltk1.3-dev \
+libshiboken2-dev \
+python3-empy \
+python3-nose \
+python3-pyqt5 \
+python3-sip-dev \
+python3-sip \
+libpoco-dev \
+libbz2-dev \
+libgtest-dev \
+liblog4cxx-dev \
+libyaml-cpp-dev \
+libpcl-dev \
+pyqt5-dev && apt-get clean && rm -rf /var/lib/apt/lists/* && \
+./src/catkin/bin/catkin_make_isolated -DCMAKE_BUILD_TYPE=Release --install --install-space /opt/ros/noetic 
 
 RUN cd ~ && rm -rf build
 
