@@ -102,8 +102,6 @@ RUN cd ~/build && \
     cd opencv-4.5.4 && mkdir build && cd build && \
     cmake -D CMAKE_BUILD_TYPE=RELEASE \
     -D CMAKE_INSTALL_PREFIX=/usr/local \
-    -D CMAKE_C_COMPILER=clang-11 \
-    -D CMAKE_CXX_COMPILER=clang++-11 \
     -D INSTALL_PYTHON_EXAMPLES=OFF \
     -D INSTALL_C_EXAMPLES=OFF \
     -D OPENCV_EXTRA_MODULES_PATH='~/build/opencv_contrib-4.5.4/modules' \
@@ -196,8 +194,7 @@ colcon build --install-base /opt/ros/foxy --executor parallel
 
 RUN cd ~ && rm -rf build
 
-COPY assets/private.key /tmp/
-RUN gpg --import /tmp/private.key
+
 
 COPY assets/entrypoint_setup.sh /
 ENTRYPOINT ["/entrypoint_setup.sh"]

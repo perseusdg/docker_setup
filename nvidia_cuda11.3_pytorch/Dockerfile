@@ -45,8 +45,10 @@ libdc1394-22-dev \
 libavresample-dev \
 libatlas-cpp-0.6-dev \
 python3-dev \
+libyaml-cpp-dev \
 gdb \
 python3-pip \
+bison \
 unzip libtbb-dev && \
 apt-get clean && rm -rf /var/lib/apt/lists/*
 
@@ -55,19 +57,6 @@ software-properties-common && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 RUN apt-add-repository universe 
 RUN apt-get update && apt-get install -y python3-pip  python3 openssh-server ssh pyqt5-dev sip-dev && apt-get clean && rm -rf /var/lib/apt/lists/* 
-RUN pip3 install --upgrade pip
-RUN pip3 install --upgrade virtualenv
-RUN pip3 install --upgrade paramiko
-RUN pip3 install --ignore-installed --upgrade numpy protobuf
-
-
-RUN cd ~ && mkdir build
-RUN cd ~/build && wget https://github.com/Kitware/CMake/releases/download/v3.21.4/cmake-3.21.4.tar.gz  && \
-tar -xvf cmake-3.21.4.tar.gz && cd cmake-3.21.4 && ./configure --prefix=/usr/local --qt-gui --parallel=12 && \
-make -j8 && make install 
-
-RUN apt-get update && apt-get install -y automake autoconf pkg-config libevent-dev libncurses5-dev bison && \
-apt-get clean && rm -rf /var/lib/apt/lists/
 
 RUN git clone https://github.com/tmux/tmux.git && \
 cd tmux && git checkout tags/3.2 && ls -la && sh autogen.sh && ./configure && make -j8 && make install
@@ -84,6 +73,25 @@ RUN sed -i '/plugins=(/c\plugins=(git git-flow adb pyenv tmux)' /root/.zshrc
 RUN mkdir -p /root/.config/terminator/
 COPY assets/terminator_config /root/.config/terminator/config 
 
+RUN wget https://repo.anaconda.com/archive/Anaconda3-2021.05-Linux-x86_64.sh -O anaconda.sh && \
+/bin/bash anaconda.sh -b -p /opt/conda && rm anaconda.sh && \
+ln -s /opt/conda/etc/profile.d/conda.sh /etc/profile.d/conda.sh && \
+echo ". /opt/conda/etc/profile.d/conda.sh" >> ~/.zshrc && \
+echo "conda activate base" >> ~/.zshrc  && \
+/opt/conda/bin/conda init zsh 
+
+RUN /opt/conda/bin/conda install numpy mkl mkl-include cffi typing_extensions pyyaml astunparse future six requests dataclasses && \
+/opt/conda/bin/conda install -c pytorch magma-cuda113
+
+RUN cd ~ && mkdir build
+RUN cd ~/build && wget https://github.com/Kitware/CMake/releases/download/v3.21.4/cmake-3.21.4.tar.gz  && \
+tar -xvf cmake-3.21.4.tar.gz && cd cmake-3.21.4 && ./configure --prefix=/usr/local --qt-gui --parallel=12 && \
+make -j8 && make install 
+
+RUN apt-get update && apt-get install -y automake autoconf pkg-config libevent-dev libncurses5-dev bison && \
+apt-get clean && rm -rf /var/lib/apt/lists/
+
+
 RUN echo "/usr/local/nvidia/lib" >> /etc/ld.so.conf.d/nvidia.conf && \
     echo "/usr/local/nvidia/lib64" >> /etc/ld.so.conf.d/nvidia.conf && \
     echo "/usr/local/cuda/lib64" >> /etc/ld.so.conf.d/nvidia.conf
@@ -95,13 +103,17 @@ ENV NVIDIA_VISIBLE_DEVICES all
 ENV NVIDIA_DRIVER_CAPABILITIES compute,utility,graphics
 
 
-
+ENV PATH /opt/conda/bin:$PATH 
+SHELL ["/bin/zsh","-c"]
 RUN cd ~/build && wget https://github.com/opencv/opencv/archive/4.5.4.tar.gz && tar -xf 4.5.4.tar.gz && rm 4.5.4.tar.gz
 RUN cd ~/build && wget https://github.com/opencv/opencv_contrib/archive/4.5.4.tar.gz && tar -xf 4.5.4.tar.gz && rm 4.5.4.tar.gz
-RUN cd ~/build && \
+RUN cd ~/build && source /root/.zshrc && conda activate base && \
     cd opencv-4.5.4 && mkdir build && cd build && \
     cmake -D CMAKE_BUILD_TYPE=RELEASE \
-    -D CMAKE_INSTALL_PREFIX=/usr/local \
+    -DCMAKE_INSTALL_PREFIX=$(python -c "import sys; print(sys.prefix)") \
+    -DPYTHON_EXECUTABLE=$(python -c "import sys; print(sys.executable)") \
+    -DPYTHON_INCLUDE_DIR=$(python -c "import sysconfig; print(sysconfig.get_config_var('INCLUDEPY'))") \
+    -DPYTHON_PACKAGES_PATH=$(python -c "import sysconfig; print(sysconfig.get_config_var('LIBDEST'))") \
     -D INSTALL_PYTHON_EXAMPLES=OFF \
     -D INSTALL_C_EXAMPLES=OFF \
     -D OPENCV_EXTRA_MODULES_PATH='~/build/opencv_contrib-4.5.4/modules' \
@@ -126,42 +138,19 @@ RUN cd ~/build && \
     -D WITH_TBB=ON \
     ../ && make -j12 && make install
 
-RUN apt-get update && apt-get install libglew-dev && apt-get clean && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y  libglew-dev ninja-build && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-RUN apt-get update && curl -sSL http://get.gazebosim.org | sh && \
-sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-stable `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-stable.list' && \
-apt-get update && apt-get install -y libgazebo11-dev gazebo11 && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+RUN cd ~/build && source /root/.zshrc && conda activate base && git clone https://github.com/pytorch/pytorch.git --recursive -b v1.10.0 --depth=1 && \
+cd pytorch && \
+export USE_OPENCV=ON && export USE_TBB=ON && export USE_FFMPEG=ON && export USE_TBB=ON && \
+python setup.py build --cmake-only && cd build && ninja -j4 && cd .. && python setup.py install
 
 
 RUN cd ~/build && wget https://github.com/stevenlovegrove/Pangolin/archive/refs/tags/v0.6.tar.gz && tar -xvf v0.6.tar.gz && \
 cd Pangolin-0.6 && mkdir build && cd build && cmake \
 -D CMAKE_BUILD_TYPE=Release ../ && make -j12 && make install
 
-
-RUN cd ~/build && pip3 install rosdep rosinstall_generator vcstool && \
-rosdep init && \
-rosdep update && \
-mkdir ros_caktin_ws && cd ros_caktin_ws && \
-rosinstall_generator desktop_full --rosdistro noetic --deps --tar > noetic-desktop.rosinstall && \
-mkdir ./src && vcs import --input noetic-desktop.rosinstall ./src && \
-apt-get update && apt-get install -y \
-liborocos-kdl-dev \
-libgpgme-dev \
-libfltk1.3-dev \
-libshiboken2-dev \
-python3-empy \
-python3-nose \
-python3-pyqt5 \
-python3-sip-dev \
-python3-sip \
-libpoco-dev \
-libbz2-dev \
-libgtest-dev \
-liblog4cxx-dev \
-libyaml-cpp-dev \
-libpcl-dev \
-pyqt5-dev && apt-get clean && rm -rf /var/lib/apt/lists/* && \
-./src/catkin/bin/catkin_make_isolated -DCMAKE_BUILD_TYPE=Release --install --install-space /opt/ros/noetic 
 
 RUN cd ~ && rm -rf build
 
