@@ -11,9 +11,9 @@ help: ## This help.
 
 .DEFAULT_GOAL := help
 
-nvidia_ros_noetic:nvidia_ros_noetic ## [NVIDIA] Build ros noetic with cuda11.3 and tensorrt8
-		docker build -t perseusdg/ros-noetic:cuda11.4 nvidia_cuda11.4_ros_noetic
-		@printf "\n\033[92mDocker Image: perseusdg/ros-noetic:cuda11.4\033[0m\n"
+nvidia_dev_cuda11_4:nvidia_dev_cuda11_4 ## [NVIDIA] Build ros noetic with cuda11.3 and tensorrt8
+		docker build -t perseusdg/nvidia_dev:cuda11.4 nvidia_cuda11.4_dev
+		@printf "\n\033[92mDocker Image: perseusdg/nvidia_dev:cuda11.4\033[0m\n"
 
 
 nvidia_ros_foxy:nvidia_ros_foxy ## [NVIDIA] Build ros foxy with cuda11.3 and tensorrt8
