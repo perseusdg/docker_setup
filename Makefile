@@ -21,3 +21,11 @@ nvidia_cudagl_11_4_4_mkl: nvidia_cudagl_11_4_4 ## Build nvidia cudagl 11.4.4 wit
 nvidia_cudagl_mkl_opencv4: nvidia_cudagl_11_4_4_mkl ## Build opencv 4.5.5 with mkl and cuda
 		docker build -t perseusdg/cuda_dev:opencv4.5 -f nvidia_cuda11.4/opencv4.5.5/Dockerfile .
 		@printf "\n\033[92mDocker Image: perseusdg/cuda_dev:opencv4.5\033[0m\n"
+
+nvidia_cudagl_pytorch: nvidia_cudagl_mkl_opencv4 ## Build pytorch with opencv,cuda,torchvision and torchaudio support
+		docker build -t perseusdg/pytorch:cuda -f nvidia_cuda11.4/pytorch/Dockerfile  .
+		@printf "\n\033[92mDocker Image: perseusdg/pytorch:cuda\033[0m\n"
+
+tools_vscode: ## [TOOLS] add vscode to docker container
+		docker build --build-arg="ARG_FROM=${RUN_ARGS}" -t ${RUN_ARGS} -f tools/vscode/Dockerfile .
+		@printf "\n\033[92mDocker Image: perseusdg/pytorch:cuda\033[0m\n"

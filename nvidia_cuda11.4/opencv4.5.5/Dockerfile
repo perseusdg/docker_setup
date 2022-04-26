@@ -19,7 +19,7 @@ libv4l-dev \
 tar \
 libgoogle-glog-dev \
 libgflags-dev \
-gfortran-9 \
+gfortran-10 \
 libtbb-dev \
 libgstreamer1.0-dev \
 libgstreamer-plugins-base1.0-dev \
@@ -31,6 +31,8 @@ gcc g++ \
 python3-pip \
 unzip libtbb-dev && \
 apt-get clean && rm -rf /var/lib/apt/lists/*
+
+RUN ln -s /usr/bin/gfortran-10 /usr/bin/gfortran
 
 ENV CC=gcc-10
 ENV CXX=g++-10
@@ -78,22 +80,22 @@ ENV LD_LIBRARY_PATH /usr/local/nvidia/lib:/usr/local/nvidia/lib64:/usr/local/cud
 ENV NVIDIA_VISIBLE_DEVICES all
 ENV NVIDIA_DRIVER_CAPABILITIES compute,utility
 
-RUN wget https://code.videolan.org/videolan/dav1d/-/archive/1.0.0/dav1d-1.0.0.tar.gz && tar -xvf dav1d-1.0.0.tar.gz && \
+RUN cd ~/build && wget https://code.videolan.org/videolan/dav1d/-/archive/1.0.0/dav1d-1.0.0.tar.gz && tar -xvf dav1d-1.0.0.tar.gz && \
 cd dav1d-1.0.0 && meson build && cd build && ninja -j16 install
 
-RUN git clone https://gitlab.com/libeigen/eigen.git && cd eigen && \
+RUN cd ~/build && git clone https://gitlab.com/libeigen/eigen.git && cd eigen && \
 git checkout 3.3.9 && mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release -G"Ninja" .. && \
 ninja install
 
 RUN apt-get update && apt-get install -y libva-dev libx264-dev libx265-dev libass-dev libtheora-dev libmfx-dev libvulkan-dev libopengl-dev && apt-get clean && rm -rf /var/lib/apt/lists/**
 
-RUN git clone https://github.com/FFmpeg/nv-codec-headers.git && cd nv-codec-headers && make install
+RUN cd ~/build && git clone https://github.com/FFmpeg/nv-codec-headers.git && cd nv-codec-headers && make install
 
-RUN git clone https://github.com/FFmpeg/FFmpeg.git && cd FFmpeg && git checkout n4.4.2 && \
+RUN cd ~/build && git clone https://github.com/FFmpeg/FFmpeg.git && cd FFmpeg && git checkout n4.4.2 && \
 ./configure --prefix=/usr/local --enable-avcodec --enable-avresample --enable-avdevice --enable-avfilter --enable-avformat --enable-swscale --enable-swresample --enable-cuvid --enable-cuda-nvcc --enable-libnpp --enable-libx264 --enable-libx265 --enable-libdav1d --enable-shared --enable-vulkan --enable-opengl --enable-openssl --enable-nonfree --enable-gpl --extra-cflags=-I/usr/local/cuda/include --nvccflags="-gencode arch=compute_86,code=sm_86 -O2" --disable-static --enable-libtheora --enable-libmfx --extra-ldflags="-L/usr/local/cuda/lib64" --enable-nvenc --enable-nvdec --enable-vaapi --enable-libass && \
 make -j16 install
 
-RUN wget https://github.com/Kitware/VTK/archive/refs/tags/v9.1.0.tar.gz && tar -xvf v9.1.0.tar.gz && \
+RUN cd ~/build && wget https://github.com/Kitware/VTK/archive/refs/tags/v9.1.0.tar.gz && tar -xvf v9.1.0.tar.gz && \
 cd VTK-9.1.0 && mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release -DVTK_USE_CUDA=ON \
 -DVTK_SMP_IMPLEMENTATION_TYPE=TBB \
 -DVTK_GROUP_ENABLE_Imaging=YES \
@@ -137,9 +139,10 @@ RUN cd ~/build && \
     -D WITH_GSTREAMER=ON \
     -D WITH_GSTREAMER_0_10=OFF \
     -D WITH_TBB=ON \
-    ../ && make -j12 && make install
+    ../ && make -j12 && make install && \
+    cd python_loader && python3 setup.py install
 
-RUN git clone https://github.com/jbeder/yaml-cpp.git && cd yaml-cpp && git checkout yaml-cpp-0.7.0 && \
+RUN cd ~/build && git clone https://github.com/jbeder/yaml-cpp.git && cd yaml-cpp && git checkout yaml-cpp-0.7.0 && \
 mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local \
 -DYAML_BUILD_SHARED_LIBS=ON -G"Ninja" .. && ninja -j12 && ninja install 
 

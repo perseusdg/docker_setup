@@ -2,6 +2,7 @@
 FROM ubuntu:20.04 as base
 FROM base as base-amd64
 
+
 ENV NVARCH x86_64
 ENV NVIDIA_REQUIRE_CUDA "cuda>=11.4 brand=tesla,driver>=418,driver<419 brand=tesla,driver>=440,driver<441 brand=tesla,driver>=450,driver<451 brand=tesla,driver>=460,driver<461"
 ENV NV_CUDA_CUDART_VERSION 11.4.148-1
@@ -13,7 +14,9 @@ ENV DEBIAN_FRONTEND noninteractive
 
 FROM base-amd64
 
-
+RUN rm /etc/apt/sources.list
+COPY assets/sources.list.princeton /etc/apt/sources.list
+RUN apt-get update && apt upgrade -y
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gnupg2 curl ca-certificates && \
     curl -fsSL https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/${NVARCH}/7fa2af80.pub | apt-key add - && \
