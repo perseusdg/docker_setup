@@ -25,6 +25,9 @@ cd pytorch && python3 setup.py install
 RUN cd ~/build && wget https://github.com/pytorch/vision/archive/refs/tags/v0.12.0.tar.gz && \
 tar -xvf v0.12.0.tar.gz && cd vision-0.12.0 && python3 setup.py install 
 
+RUN cd ~ && rm -rf build && cd / && rm -rf build
+RUN pip3 install jupyter pandas jupyterlab scipy pillow tqdm matplotlib pyside2
+
 ENTRYPOINT ["/entrypoint_setup.sh"]
 CMD ["terminator"]
 

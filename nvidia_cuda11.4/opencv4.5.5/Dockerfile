@@ -6,7 +6,7 @@ locales \
 lsb-release \
 mesa-utils \
 git \
-nano gcc-10 g++-10 \
+nano gcc g++ \
 terminator \
 wget \
 curl \
@@ -19,7 +19,7 @@ libv4l-dev \
 tar \
 libgoogle-glog-dev \
 libgflags-dev \
-gfortran-10 \
+gfortran \
 libtbb-dev \
 libgstreamer1.0-dev \
 libgstreamer-plugins-base1.0-dev \
@@ -32,10 +32,9 @@ python3-pip \
 unzip libtbb-dev && \
 apt-get clean && rm -rf /var/lib/apt/lists/*
 
-RUN ln -s /usr/bin/gfortran-10 /usr/bin/gfortran
 
-ENV CC=gcc-10
-ENV CXX=g++-10
+
+
 RUN apt-get update && apt-get install -y --no-install-recommends \
 software-properties-common && apt-get clean && rm -rf /var/lib/apt/lists/*
 

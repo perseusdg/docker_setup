@@ -49,11 +49,3 @@ deb http://mirror.math.princeton.edu/pub/ubuntu/ focal-security universe
 # deb-src http://security.ubuntu.com/ubuntu focal-security universe
 deb http://mirror.math.princeton.edu/pub/ubuntu/ focal-security multiverse
 # deb-src http://security.ubuntu.com/ubuntu focal-security multiverse
-
-# This system was installed using small removable media
-# (e.g. netinst, live or single CD). The matching "deb cdrom"
-# entries were disabled at the end of the installation process.
-# For information about how to configure apt package sources,
-# see the sources.list(5) manual.
-deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/ /
-# deb-src https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/ /
