@@ -26,6 +26,10 @@ nvidia_cudagl_pytorch: nvidia_cudagl_mkl_opencv4 ## Build pytorch with opencv,cu
 		docker build -t perseusdg/pytorch:cuda -f nvidia_cuda11.4/pytorch/Dockerfile  .
 		@printf "\n\033[92mDocker Image: perseusdg/pytorch:cuda\033[0m\n"
 
+nvidia_prebuild_pytorch_tensorrt: ## Build prebuild pytorch container
+		docker build -t perseusdg/pytorch:tensorrt -f prebuilt_containers/pytorch/Dockerfile .
+		@printf "\n\033[92mDocker Image: perseusdg/pytorch:tensorrt\033[0m\n"
+
 tools_vscode: ## [TOOLS] add vscode to docker container
 		docker build --build-arg="ARG_FROM=${RUN_ARGS}" -t ${RUN_ARGS} -f tools/vscode/Dockerfile .
 		@printf "\n\033[92mDocker Image: perseusdg/pytorch:cuda\033[0m\n"
