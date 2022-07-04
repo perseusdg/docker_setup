@@ -1,60 +1,64 @@
-FROM perseusdg/cudagl:cuda_11.4.4_mkl
-
-RUN apt-get update && apt-get install -y --no-install-recommends \
-libblkid-dev \
-locales \
-lsb-release \
-mesa-utils \
-git \
-nano gcc g++ \
-terminator \
-wget \
-curl \
-libssl-dev \
-htop \
-dbus-x11 \
-libqt5opengl5-dev \
-libgtk-3-dev \
-libv4l-dev \
-tar \
-libgoogle-glog-dev \
-libgflags-dev \
-gfortran \
-libtbb-dev \
-libgstreamer1.0-dev \
-libgstreamer-plugins-base1.0-dev \
-libdc1394-22-dev \
-libatlas-cpp-0.6-dev \
-python3-dev \
-gdb \
-gcc g++ \
-python3-pip \
-unzip libtbb-dev && \
-apt-get clean && rm -rf /var/lib/apt/lists/*
-
-
+FROM perseusdg/cudagl:cuda_11.6.2_mkl
 
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
 software-properties-common && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 RUN apt-add-repository universe 
-RUN apt-get update && apt-get install -y python3-pip nasm automake meson python3 openssh-server ssh pyqt5-dev sip-dev && apt-get clean && rm -rf /var/lib/apt/lists/* 
-RUN pip3 install --upgrade pip
-RUN pip3 install --upgrade virtualenv
-RUN pip3 install --upgrade paramiko
-RUN pip3 install --ignore-installed --upgrade numpy protobuf
 
-RUN cd ~ && mkdir build
-RUN cd ~/build && wget https://github.com/Kitware/CMake/releases/download/v3.23.1/cmake-3.23.1.tar.gz && \
-tar -xvf cmake-3.23.1.tar.gz && cd cmake-3.23.1 && ./configure --prefix=/usr/local --qt-gui --parallel=12 && \
+ 
+RUN apt-get update && \
+apt-get install -y  gcc clang \
+git \
+lsb-release \
+libqt5opengl5-dev \
+libgtk-3-dev \
+libssl-dev \
+libdc1394-22-dev \
+tar \
+python3-dev \
+unzip \
+libtbb-dev \
+libomp-dev \
+gfortran \
+libv4l-dev \
+python3-pip \
+libvulkan-dev \
+dbus-x11 \
+mesa-utils \
+libdc1394-22-dev \
+libgflags-dev \
+libgoogle-glog-dev \
+nasm \
+libx264-dev \
+libx265-dev \
+libass-dev \
+libfdk-aac-dev \
+libatlas-cpp-0.6-dev \
+meson \
+automake \
+openssh-server \
+libevent-dev  \
+libncurses-dev \
+bison \
+libva-dev \
+mesa-utils \
+libmfx-dev \
+terminator \
+zsh \
+libopengl-dev && \
+apt-get clean && rm -rf /var/lib/apt/lists/*
+
+
+RUN python3 -m pip install pip numpy protobuf
+
+RUN cd ~ && mkdir build 
+RUN cd ~/build && wget https://github.com/Kitware/CMake/archive/refs/tags/v3.23.2.tar.gz && \
+tar -xvf v3.23.2.tar.gz && cd CMake-3.23.2 && ./configure --prefix=/usr/local --qt-gui --parallel=12 && \
 make -j16 && make install 
-
-RUN apt-get update && apt-get install -y libevent-dev libncurses-dev bison
 
 RUN git clone https://github.com/tmux/tmux.git && \
 cd tmux && git checkout tags/3.2 && ls -la && sh autogen.sh && ./configure && make -j8 && make install
-
 
 RUN apt-get update && apt-get install -y zsh && apt-get clean && rm -rf /var/lib/apt/lists/*
 RUN wget https://github.com/robbyrussell/oh-my-zsh/raw/master/tools/install.sh -O - | zsh || true
@@ -83,16 +87,23 @@ RUN cd ~/build && wget https://code.videolan.org/videolan/dav1d/-/archive/1.0.0/
 cd dav1d-1.0.0 && meson build && cd build && ninja -j16 install
 
 RUN cd ~/build && git clone https://gitlab.com/libeigen/eigen.git && cd eigen && \
-git checkout 3.3.9 && mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release -G"Ninja" .. && \
+git checkout 3.4.0 && mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release -G"Ninja" .. && \
 ninja install
 
-RUN apt-get update && apt-get install -y libva-dev libx264-dev libx265-dev libass-dev libtheora-dev libmfx-dev libvulkan-dev libopengl-dev && apt-get clean && rm -rf /var/lib/apt/lists/**
+RUN cd ~/build && git clone https://github.com/FFmpeg/nv-codec-headers.git && \
+cd nv-codec-headers && make install
 
-RUN cd ~/build && git clone https://github.com/FFmpeg/nv-codec-headers.git && cd nv-codec-headers && make install
+RUN apt-get update && apt-get install -y libtheora-dev 
 
 RUN cd ~/build && git clone https://github.com/FFmpeg/FFmpeg.git && cd FFmpeg && git checkout n4.4.2 && \
-./configure --prefix=/usr/local --enable-avcodec --enable-avresample --enable-avdevice --enable-avfilter --enable-avformat --enable-swscale --enable-swresample --enable-cuvid --enable-cuda-nvcc --enable-libnpp --enable-libx264 --enable-libx265 --enable-libdav1d --enable-shared --enable-vulkan --enable-opengl --enable-openssl --enable-nonfree --enable-gpl --extra-cflags=-I/usr/local/cuda/include --nvccflags="-gencode arch=compute_86,code=sm_86 -O2" --disable-static --enable-libtheora --enable-libmfx --extra-ldflags="-L/usr/local/cuda/lib64" --enable-nvenc --enable-nvdec --enable-vaapi --enable-libass && \
+./configure --prefix=/usr/local --enable-avcodec --enable-avresample --enable-libfdk-aac --enable-avdevice --enable-avfilter --enable-avformat --enable-swscale --enable-swresample --enable-cuvid --enable-cuda-nvcc --enable-libnpp --enable-libx264 --enable-libx265 --enable-libdav1d --enable-shared --enable-vulkan --enable-opengl --enable-openssl --enable-nonfree --enable-gpl --extra-cflags=-I/usr/local/cuda/include --nvccflags="-gencode arch=compute_86,code=sm_86 -O2" --disable-static --enable-libtheora --enable-libmfx --extra-ldflags="-L/usr/local/cuda/lib64" --enable-nvenc --enable-nvdec --enable-vaapi --enable-libass && \
 make -j16 install
+
+RUN cd ~/build && git clone https://github.com/xianyi/OpenBLAS.git && \
+cd OpenBLAS && mkdir build && cd build && \
+cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON -G"Ninja" .. && ninja -j12 && \
+ninja install 
+
 
 RUN cd ~/build && wget https://github.com/Kitware/VTK/archive/refs/tags/v9.1.0.tar.gz && tar -xvf v9.1.0.tar.gz && \
 cd VTK-9.1.0 && mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release -DVTK_USE_CUDA=ON \
@@ -103,21 +114,16 @@ cd VTK-9.1.0 && mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release -DVT
 -DVTK_GROUP_ENABLE_Views=YES -DVTK_EXTRA_COMPILER_WARNING=ON \
 -DCMAKE_INSTALL_PREFIX=/usr/local -G"Ninja" .. && ninja -j16 install
 
+RUN cd ~/build && wget https://github.com/opencv/opencv/archive/4.6.0.tar.gz && tar -xf 4.6.0.tar.gz && rm 4.6.0.tar.gz
+RUN cd ~/build && wget https://github.com/opencv/opencv_contrib/archive/4.6.0.tar.gz && tar -xf 4.6.0.tar.gz && rm 4.6.0.tar.gz
 
-RUN cd ~/build && git clone https://github.com/xianyi/OpenBLAS.git && \
-cd OpenBLAS && mkdir build && cd build && \
-cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON -G"Ninja" .. && ninja -j12 \
-ninja install 
-
-RUN cd ~/build && wget https://github.com/opencv/opencv/archive/4.5.5.tar.gz && tar -xf 4.5.5.tar.gz && rm 4.5.5.tar.gz
-RUN cd ~/build && wget https://github.com/opencv/opencv_contrib/archive/4.5.5.tar.gz && tar -xf 4.5.5.tar.gz && rm 4.5.5.tar.gz
 RUN cd ~/build && \
-    cd opencv-4.5.5 && mkdir build && cd build && \
+    cd opencv-4.6.0 && mkdir build && cd build && \
     cmake -D CMAKE_BUILD_TYPE=RELEASE \
     -D CMAKE_INSTALL_PREFIX=/usr/local \
     -D INSTALL_PYTHON_EXAMPLES=OFF \
     -D INSTALL_C_EXAMPLES=OFF \
-    -D OPENCV_EXTRA_MODULES_PATH='~/build/opencv_contrib-4.5.5/modules' \
+    -D OPENCV_EXTRA_MODULES_PATH='~/build/opencv_contrib-4.6.0/modules' \
     -D BUILD_EXAMPLES=OFF \
     -D BUILD_TESTS=OFF \
     -D BUILD_PERF_TESTS=OFF \
@@ -142,13 +148,13 @@ RUN cd ~/build && \
     -D WITH_LIBV4L=ON \
     -D WITH_GSTREAMER=ON \
     -D WITH_GSTREAMER_0_10=OFF \
-    -D WITH_TBB=ON -G"Ninja"  \
+    -D WITH_TBB=ON  -G"Ninja" \
     ../ && ninja -j12 && ninja install && \
     cd python_loader && python3 setup.py install
 
 RUN cd ~/build && git clone https://github.com/jbeder/yaml-cpp.git && cd yaml-cpp && git checkout yaml-cpp-0.7.0 && \
 mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local \
--DYAML_BUILD_SHARED_LIBS=ON -G"Ninja" .. && ninja -j12 && ninja install 
+-DYAML_BUILD_SHARED_LIBS=ON -G"Ninja" .. && ninja -j12 && ninja install
 
 RUN apt-get update && apt-get install apt-transport-https && apt-get update && apt install && apt-get clean && rm -rf /var/lib/apt/lists/*
 RUN cd ~ && rm -rf build
@@ -157,3 +163,4 @@ RUN cd / && rm -rf build
 COPY assets/entrypoint_setup.sh /
 ENTRYPOINT ["/entrypoint_setup.sh"]
 CMD ["terminator"]
+

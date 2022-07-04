@@ -4,9 +4,9 @@ FROM base as base-amd64
 
 
 ENV NVARCH x86_64
-ENV NVIDIA_REQUIRE_CUDA "cuda>=11.4 brand=tesla,driver>=418,driver<419 brand=tesla,driver>=440,driver<441 brand=tesla,driver>=450,driver<451 brand=tesla,driver>=460,driver<461"
-ENV NV_CUDA_CUDART_VERSION 11.4.148-1
-ENV NV_CUDA_COMPAT_PACKAGE cuda-compat-11-4
+ENV NVIDIA_REQUIRE_CUDA "cuda>=11.6 brand=tesla,driver>=418,driver<419 brand=tesla,driver>=440,driver<441 brand=tesla,driver>=450,driver<451 brand=tesla,driver>=460,driver<461"
+ENV NV_CUDA_CUDART_VERSION 11.6.55-1
+ENV NV_CUDA_COMPAT_PACKAGE cuda-compat-11-6
 
 ENV DEBIAN_FRONTEND noninteractive
 
@@ -14,8 +14,6 @@ ENV DEBIAN_FRONTEND noninteractive
 
 FROM base-amd64
 
-RUN rm /etc/apt/sources.list
-COPY assets/sources.list.princeton /etc/apt/sources.list
 RUN apt-get update && apt upgrade -y
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gnupg2 curl ca-certificates && \
@@ -25,12 +23,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     apt-get purge --autoremove -y curl \
     && rm -rf /var/lib/apt/lists/*
 
-ENV CUDA_VERSION 11.4.4
+ENV CUDA_VERSION 11.6.2
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    cuda-cudart-11-4=${NV_CUDA_CUDART_VERSION} \
+    cuda-cudart-11-6=${NV_CUDA_CUDART_VERSION} \
     ${NV_CUDA_COMPAT_PACKAGE} \
-    && ln -s cuda-11.4 /usr/local/cuda && \
+    && ln -s cuda-11.6 /usr/local/cuda && \
     rm -rf /var/lib/apt/lists/*
 
 # Required for nvidia-docker v1
@@ -44,7 +42,7 @@ ENV LD_LIBRARY_PATH /usr/local/nvidia/lib:/usr/local/nvidia/lib64
 ENV NVIDIA_VISIBLE_DEVICES all
 ENV NVIDIA_DRIVER_CAPABILITIES compute,utility
 
-RUN apt-get update && apt-get install -y cuda-toolkit-11-4=11.4.4-1 && apt-get clean && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y cuda-toolkit-11-6=11.6.2-1 && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 RUN dpkg --add-architecture i386
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -57,7 +55,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 COPY assets/10_nvidia.json /usr/share/glvnd/egl_vendor.d/10_nvidia.json
 
-RUN apt-get update && apt-get install -y --no-install-recommends \3bf863cc.pub
+RUN apt-get update && apt-get install -y --no-install-recommends \
         pkg-config \
         libglvnd-dev libglvnd-dev:i386 \
         libgl1-mesa-dev libgl1-mesa-dev:i386 \
@@ -65,7 +63,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \3bf863cc.pub
         libgles2-mesa-dev libgles2-mesa-dev:i386 && \
     rm -rf /var/lib/apt/lists/*
 
-RUN apt-get update && apt-get install -y  libnvinfer-dev=8.2.4-1+cuda11.4 libcudnn8-dev=8.2.4.15-1+cuda11.4 libcudnn8=8.2.4.15-1+cuda11.4 && apt-get clean &&\
+RUN apt-get update && apt-get install -y tensorrt-dev=8.4.1.5-1+cuda11.6 libnvinfer-dev=8.4.1-1+cuda11.6 libnvinfer-bin=8.4.1-1+cuda11.6 libcudnn8-dev=8.4.0.27-1+cuda11.6 libcudnn8=8.4.0.27-1+cuda11.6 && apt-get clean &&\
 rm -rf /var/lib/apt/lists
 
 
