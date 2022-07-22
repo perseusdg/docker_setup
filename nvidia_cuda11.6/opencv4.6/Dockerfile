@@ -16,13 +16,11 @@ libgtk-3-dev \
 libssl-dev \
 libdc1394-22-dev \
 tar \
-python3-dev \
 unzip \
 libtbb-dev \
 libomp-dev \
 gfortran \
 libv4l-dev \
-python3-pip \
 libvulkan-dev \
 dbus-x11 \
 mesa-utils \
@@ -49,8 +47,15 @@ zsh \
 libopengl-dev && \
 apt-get clean && rm -rf /var/lib/apt/lists/*
 
+RUN wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+RUN bash Miniconda3-latest-Linux-x86_64.sh -b -p /miniconda
+ENV PATH /miniconda/condabin:/miniconda/bin:/usr/local/nvidia/bin:/usr/local/cuda/bin:${PATH}
+ENV LD_LIBRARY_PATH /usr/local/nvidia/lib:/usr/local/nvidia/lib64:/usr/local/cuda/lib64:/usr/lib:/usr/lib/x86_64-linux-gnu:/usr/local/lib:${LD_LIBRARY_PATH}
+ENV NVIDIA_VISIBLE_DEVICES all
+ENV NVIDIA_DRIVER_CAPABILITIES compute,utility
+RUN conda install python=3.10.5 -c conda-forge
+RUN pip install numpy cffi typing_extensions mkl mkl-include pyyaml
 
-RUN python3 -m pip install pip numpy protobuf
 
 RUN cd ~ && mkdir build 
 RUN cd ~/build && wget https://github.com/Kitware/CMake/archive/refs/tags/v3.23.2.tar.gz && \
@@ -78,10 +83,7 @@ RUN echo "/usr/local/nvidia/lib" >> /etc/ld.so.conf.d/nvidia.conf && \
     echo "/usr/local/cuda/lib64" >> /etc/ld.so.conf.d/nvidia.conf
 
 
-ENV PATH /usr/local/nvidia/bin:/usr/local/cuda/bin:${PATH}
-ENV LD_LIBRARY_PATH /usr/local/nvidia/lib:/usr/local/nvidia/lib64:/usr/local/cuda/lib64:/usr/lib:/usr/lib/x86_64-linux-gnu:/usr/local/lib:${LD_LIBRARY_PATH}
-ENV NVIDIA_VISIBLE_DEVICES all
-ENV NVIDIA_DRIVER_CAPABILITIES compute,utility
+
 
 RUN cd ~/build && wget https://code.videolan.org/videolan/dav1d/-/archive/1.0.0/dav1d-1.0.0.tar.gz && tar -xvf dav1d-1.0.0.tar.gz && \
 cd dav1d-1.0.0 && meson build && cd build && ninja -j16 install
@@ -117,6 +119,8 @@ cd VTK-9.1.0 && mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release -DVT
 RUN cd ~/build && wget https://github.com/opencv/opencv/archive/4.6.0.tar.gz && tar -xf 4.6.0.tar.gz && rm 4.6.0.tar.gz
 RUN cd ~/build && wget https://github.com/opencv/opencv_contrib/archive/4.6.0.tar.gz && tar -xf 4.6.0.tar.gz && rm 4.6.0.tar.gz
 
+RUN pip install setuptools
+
 RUN cd ~/build && \
     cd opencv-4.6.0 && mkdir build && cd build && \
     cmake -D CMAKE_BUILD_TYPE=RELEASE \
@@ -133,6 +137,10 @@ RUN cd ~/build && \
     -D MKL_ROOT_DIR=/opt/intel/oneapi/mkl/latest \
     -D MKL_WITH_TBB=ON \
     -D MKL_WTH_OPENMP=ON \
+    -D PYTHON_EXECUTABLE=/miniconda/bin/python3.10 \
+    -D PYTHON_DEFAULT_EXECUTABLE=/miniconda/bin/python3.10 \
+    -D PYTHON_INCLUDE_DIRS=/miniconda/include/python3.10 \
+    -D PYTHON_LIBRARY=/miniconda/lib/libpython3.10.so \
     -D WITH_CUDA=ON \
     -D WITH_OPENGL=ON \
     -D WITH_EIGEN=ON \
@@ -150,7 +158,7 @@ RUN cd ~/build && \
     -D WITH_GSTREAMER_0_10=OFF \
     -D WITH_TBB=ON  -G"Ninja" \
     ../ && ninja -j12 && ninja install && \
-    cd python_loader && python3 setup.py install
+    cd python_loader && python setup.py install
 
 RUN cd ~/build && git clone https://github.com/jbeder/yaml-cpp.git && cd yaml-cpp && git checkout yaml-cpp-0.7.0 && \
 mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local \
