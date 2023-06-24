@@ -5,4 +5,4 @@ docker run --rm -it -d --runtime=nvidia --privileged --net=host --ipc=host \
 -v $HOME/.ssh:/root/.ssh \
 -v $HOME/docker_development/pytorch_dev:/root/Development \
 -p 8888:8888 \
-perseusdg/pytorch:cuda11.6
+dev/cudagl:opencv-4.7

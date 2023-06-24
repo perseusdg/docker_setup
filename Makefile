@@ -49,3 +49,17 @@ nvidia_cudagl_11_6_2_opencv: nvidia_cudagl_11_6_2_mkl ## build opencv nvidia doc
 nvidia_cudagl_pytorch_11_6: nvidia_cudagl_11_6_2_opencv ## Build pytorch with opencv,cuda,torchvision ,xxxx ,torch text and torchaudio support
 		docker build -t perseusdg/pytorch:cuda11.6 -f nvidia_cuda11.6/pytorch/Dockerfile  .
 		@printf "\n\033[92mDocker Image: perseusdg/pytorch:cuda11.6\033[0m\n" 
+		
+nvidia_cudagl_12_1_1: ## [NVIDIA CUDA GL] Build nvidia cuda12.1.1 docker with cudagl
+		docker build -t dev/cudagl:12_1_1 -f cuda_12.1/base/Dockerfile .
+		@printf "\n\033[92mDocker Image: dev/cudagl:12_1_1\033[0m\n"
+nvidia_cudagl_mkl_12_1_1: nvidia_cudagl_12_1_1 ## [NVIDIA CUDA GL] Build nvidia cudagl 12.1.1 with mkl and tbb (intel -oneapi)
+		docker build -t dev/cudagl:mkl_12_1_1 -f cuda_12.1/mkl/Dockerfile .
+		@printf "\n\033[92mDocker Image: dev/cudagl:mkl_12_1_1\033[0m\n"
+nvidia_cudagl_opencv_12_1_1: nvidia_cudagl_mkl_12_1_1 ##[NVIDIA CUDA GL] Build nvidia cudagl with opencv
+		docker build -t dev/cudagl:opencv-4.7 -f cuda_12.1/opencv/Dockerfile .
+		@printf "\n\033[92mDocker Image: dev/cudagl:opencv-4.7\033[0m\n"
+
+nvidia_cudagl_pytorch_12_1_1: nvidia_cudagl_opencv_12_1_1 
+		docker build -t dev/cudagl:pytorch2.0.1 -f cuda_12.1/pytorch/Dockerfile .
+		@printf "\n\033[92mDocker Image: dev/cudagl:pytorch2.0.1\033[0m\n"
